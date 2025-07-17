@@ -18,7 +18,7 @@ if [[ $is_version_4 == "true" ]]; then
   # Unzip it
   unzip Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
   mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 $GODOT_BIN
-  GODOT_PARAMS="--headless --import"
+  GODOT_PARAMS="--headless"
 else
   echo "Downloading Godot3"
 
@@ -34,6 +34,9 @@ fi
 if [[ -n $PROJECT_PATH ]]; then
   cd $PROJECT_PATH
 fi
+
+echo Importing resources
+$GODOT_BIN --import --headless --quit
 
 echo Running GUT tests using params:
 echo "  -> $GUT_PARAMS"
