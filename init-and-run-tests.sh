@@ -18,7 +18,7 @@ if [[ $is_version_4 == "true" ]]; then
   # Unzip it
   unzip Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
   mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 $GODOT_BIN
-  GODOT_PARAMS="--headless"
+  GODOT_PARAMS="--headless --import"
 else
   echo "Downloading Godot3"
 
