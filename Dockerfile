@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 MAINTAINER "ceceppa" <info@ceceppa.me>
 
 # Let the conatiner know that there is no tty
