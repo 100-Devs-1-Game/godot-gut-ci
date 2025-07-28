@@ -35,7 +35,7 @@ if [[ -n $PROJECT_PATH ]]; then
   cd $PROJECT_PATH
 fi
 
-echo Load godot once to initialize (fixes Panku Console undefined class error in Godot 4.4)
+echo Load godot once to initialize 
 $GODOT_BIN --headless --editor --quit
 
 echo Importing resources
