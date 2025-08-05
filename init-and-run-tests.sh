@@ -36,16 +36,16 @@ if [[ -n $PROJECT_PATH ]]; then
 fi
 
 echo Load godot once to initialize 
-$GODOT_BIN --headless --editor --quit
+$GODOT_BIN --headless --editor --render-thread safe --single-threaded-scene --quit
 
 echo Importing resources
-$GODOT_BIN --import --headless --quit
+$GODOT_BIN --import --headless --render-thread safe --single-threaded-scene --quit
 
 echo Running GUT tests using params:
 echo "  -> $GUT_PARAMS"
 
 TEMP_FILE=/tmp/gut.log
-$GODOT_BIN -d -s $GODOT_PARAMS --path $PWD addons/gut/gut_cmdln.gd -gexit $GUT_PARAMS 2>&1 | tee $TEMP_FILE
+$GODOT_BIN -d -s $GODOT_PARAMS --path $PWD addons/gut/gut_cmdln.gd -gexit $GUT_PARAMS --render-thread safe --single-threaded-scene --quit 2>&1 | tee $TEMP_FILE
 
 # Godot always exists with error 0, but we want this action to fail in case of errors
 if grep -q "No tests ran" "$TEMP_FILE" || grep -qE "Asserts\s+none" "$TEMP_FILE";
@@ -57,6 +57,12 @@ fi
 if  ! grep -q "All tests passed" "$TEMP_FILE"
 then
   echo "One or more test have failed"
+  exit 1
+fi
+
+# Check for any error lines (case-insensitive)
+if grep -qi "ERROR" "$TEMP_FILE"; then
+  echo "Detected error output in test logs"
   exit 1
 fi
 
