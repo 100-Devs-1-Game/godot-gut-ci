@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 GODOT_VERSION=$1
 GUT_PARAMS=$2
@@ -62,7 +62,7 @@ fi
 
 # Check for any error lines (case-insensitive)
 # Ignores null time for textures: https://github.com/godotengine/godot/issues/108994
-FILTERED_ERRORS=$(grep -i "ERROR" "$TEMP_FILE" | grep -v 'ERROR: Parameter "t" is null.')
+FILTERED_ERRORS=$(grep -i "ERROR" "$TEMP_FILE" | grep -v 'ERROR: Parameter "t" is null.') || true
 
 if [ -n "$FILTERED_ERRORS" ]; then
   echo "Detected error output in test logs:"
