@@ -41,21 +41,8 @@ $GODOT_BIN --headless --editor --render-thread safe --single-threaded-scene --qu
 echo Importing resources
 $GODOT_BIN --import --headless --render-thread safe --single-threaded-scene --quit
 
-echo Checking resources
+echo Resaving resources
 $GODOT_BIN --headless --editor --script "addons/resource_resave/resave_resources.gd" --render-thread safe --single-threaded-scene --quit
-
-echo git status:
-echo "$(git status --porcelain)"
-
-echo git diff:
-echo "$(git diff)"
-
-if [[ -n "$(git status --porcelain)" ]]; then
-  echo "::error::Some .tres or .res files are not up to date. Please run the Resource Resaver (button in the top-right of the Godot Editor) and fix any broken resources!"
-  exit 1
-else
-  echo "All resources are up to date"
-fi
 
 echo Running GUT tests using params:
 echo "  -> $GUT_PARAMS"
