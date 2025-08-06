@@ -61,8 +61,12 @@ then
 fi
 
 # Check for any error lines (case-insensitive)
-if grep -qi "ERROR" "$TEMP_FILE"; then
-  echo "Detected error output in test logs"
+# Ignores null time for textures: https://github.com/godotengine/godot/issues/108994
+FILTERED_ERRORS=$(grep -i "ERROR" "$TEMP_FILE" | grep -v 'ERROR: Parameter "t" is null.')
+
+if [ -n "$FILTERED_ERRORS" ]; then
+  echo "Detected error output in test logs:"
+  echo "$FILTERED_ERRORS"
   exit 1
 fi
 
