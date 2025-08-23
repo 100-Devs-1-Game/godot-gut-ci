@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -o pipefail
 
 GODOT_VERSION=$1
 GUT_PARAMS=$2
@@ -10,20 +11,27 @@ GODOT_BIN=/usr/local/bin/godot
 GODOT_PARAMS=
 is_version_4=$( [[ $GODOT_VERSION == 4* ]] && echo "true" || echo "false" )
 
-if [[ $is_version_4 == "true" ]]; then
-  echo "Downloading Godot4"
+echo ""
+echo "#####################"
+echo "     DOWNLOADING     "
+echo "#####################"
 
-  wget https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
+if [[ $is_version_4 == "true" ]]; then
+  echo "Godot4"
+  echo ""
+
+  wget --progress=dot:mega https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
 
   # Unzip it
   unzip Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
   mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 $GODOT_BIN
   GODOT_PARAMS="--headless"
 else
-  echo "Downloading Godot3"
+  echo "Godot3"
+  echo ""
 
   # Use official release download
-  wget https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux_headless.64.zip
+  wget --progress=dot:mega https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux_headless.64.zip
 
   # Unzip it
   unzip Godot_v${GODOT_VERSION}-stable_linux_headless.64.zip
@@ -35,22 +43,48 @@ if [[ -n $PROJECT_PATH ]]; then
   cd $PROJECT_PATH
 fi
 
+echo ""
+echo "#####################"
+echo "    INITIALIZING     "
+echo "#####################"
+
 echo Load godot once to initialize 
 $GODOT_BIN --headless --editor --render-thread safe --single-threaded-scene --quit
+
+echo ""
+echo "#####################"
+echo "     IMPORTING       "
+echo "#####################"
 
 echo Importing resources
 $GODOT_BIN --import --headless --render-thread safe --single-threaded-scene --quit
 
+echo ""
+echo "#####################"
+echo "      TESTING        "
+echo "#####################"
+
 echo Running GUT tests using params:
 echo "  -> $GUT_PARAMS"
+echo ""
 
 TEMP_FILE=/tmp/gut.log
 $GODOT_BIN -d -s $GODOT_PARAMS --path $PWD addons/gut/gut_cmdln.gd -gexit $GUT_PARAMS --render-thread safe --single-threaded-scene --verbose 2>&1 | tee $TEMP_FILE
+
+
+
+
+# !!!!!
+# MAKE SURE THIS SECTION STAYS IN SYNC WITH THE CICD IN THE MAIN REPO
+# !!!!
+
+
 
 echo ""
 echo "#####################"
 echo "       RESULTS       "
 echo "#####################"
+echo ""
 
 FAILED=0
 
@@ -58,6 +92,7 @@ FAILED=0
 if grep -q "No tests ran" "$TEMP_FILE" || grep -qE "Asserts\s+none" "$TEMP_FILE";
 then
   echo "CI FAILED BECAUSE NO TESTS RAN"
+  echo ""
   FAILED=1
 fi
 
@@ -73,7 +108,7 @@ fi
 FILTERED_ERRORS=$(grep "ERROR" "$TEMP_FILE" | grep -v 'ERROR: Parameter "t" is null.') || true
 
 if [ -n "$FILTERED_ERRORS" ]; then
-  echo "CI FAILED BECAUSE OF GODOT ERRORS"
+  echo "CI FAILED BECAUSE OF THESE GODOT ERRORS"
   echo "$FILTERED_ERRORS"
   echo ""
   FAILED=1
@@ -83,7 +118,7 @@ fi
 FILTERED_WARNINGS=$(grep "WARNING" "$TEMP_FILE" | grep 'invalid UID:') || true
 
 if [ -n "$FILTERED_WARNINGS" ]; then
-  echo "CI FAILED BECAUSE OF GODOT UID WARNINGS"
+  echo "CI FAILED BECAUSE OF THESE GODOT WARNINGS"
   echo "$FILTERED_WARNINGS"
   echo ""
   FAILED=1
