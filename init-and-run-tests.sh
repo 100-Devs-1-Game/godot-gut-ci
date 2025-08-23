@@ -44,6 +44,10 @@ if [[ -n $PROJECT_PATH ]]; then
 fi
 
 echo ""
+echo ""
+echo ""
+echo ""
+echo ""
 echo "#####################"
 echo "    INITIALIZING     "
 echo "#####################"
@@ -52,6 +56,10 @@ echo Load godot once to initialize
 $GODOT_BIN --headless --editor --render-thread safe --single-threaded-scene --quit
 
 echo ""
+echo ""
+echo ""
+echo ""
+echo ""
 echo "#####################"
 echo "     IMPORTING       "
 echo "#####################"
@@ -59,6 +67,10 @@ echo "#####################"
 echo Importing resources
 $GODOT_BIN --import --headless --render-thread safe --single-threaded-scene --quit
 
+echo ""
+echo ""
+echo ""
+echo ""
 echo ""
 echo "#####################"
 echo "      TESTING        "
@@ -80,6 +92,10 @@ $GODOT_BIN -d -s $GODOT_PARAMS --path $PWD addons/gut/gut_cmdln.gd -gexit $GUT_P
 
 
 
+echo ""
+echo ""
+echo ""
+echo ""
 echo ""
 echo "#####################"
 echo "       RESULTS       "
