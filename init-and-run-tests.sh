@@ -142,6 +142,11 @@ fi
 
 if [ "$FAILED" -eq 0 ]; then
   echo "ALL GOOD :) :) :)"
+  echo ""
+  echo ""
+  echo ""
+  echo ""
+  echo ""
 fi
 
 exit $FAILED
