@@ -134,7 +134,7 @@ fi
 FILTERED_WARNINGS=$(grep "WARNING" "$TEMP_FILE" | grep 'invalid UID:') || true
 
 if [ -n "$FILTERED_WARNINGS" ]; then
-  echo "CI FAILED BECAUSE OF THESE GODOT WARNINGS"
+  echo "CI FAILED BECAUSE OF THESE GODOT WARNINGS:"
   echo "$FILTERED_WARNINGS"
   echo ""
   FAILED=1
@@ -142,11 +142,12 @@ fi
 
 if [ "$FAILED" -eq 0 ]; then
   echo "ALL GOOD :) :) :)"
-  echo ""
-  echo ""
-  echo ""
-  echo ""
-  echo ""
 fi
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo ""
 
 exit $FAILED
