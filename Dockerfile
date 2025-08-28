@@ -12,6 +12,7 @@ RUN apt-get install -y --no-install-recommends \
     zip \
     libfontconfig-dev \
     libtbb-dev \
+    pulseaudio \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the "start" script
