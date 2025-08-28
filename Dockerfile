@@ -11,6 +11,7 @@ RUN apt-get install -y --no-install-recommends \
     wget \
     zip \
     libfontconfig-dev \
+    libtbb-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the "start" script
