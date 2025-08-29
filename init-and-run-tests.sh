@@ -106,21 +106,6 @@ echo ""
 
 FAILED=0
 
-# Godot always exists with error 0, but we want this action to fail in case of errors
-if grep -q "No tests ran" "$TEMP_FILE_TESTS" || grep -qE "Asserts\s+none" "$TEMP_FILE_TESTS";
-then
-  echo "CI FAILED BECAUSE NO TESTS RAN"
-  echo ""
-  FAILED=1
-fi
-
-if  ! grep -q "All tests passed" "$TEMP_FILE"
-then
-  echo "CI FAILED BECAUSE SOME TESTS FAILED"
-  echo ""
-  FAILED=1
-fi
-
 # Check for any error lines (case-insensitive)
 # Ignores null time for textures: https://github.com/godotengine/godot/issues/108994
 FILTERED_ERRORS_INIT=$(grep "ERROR" "$TEMP_FILE_INIT" | grep -v 'ERROR: Parameter "t" is null.') || true
@@ -135,14 +120,14 @@ FILTERED_WARNINGS_TESTS=$(grep "WARNING" "$TEMP_FILE_TESTS" | grep 'invalid UID:
 # INIT
 
 if [ -n "$FILTERED_ERRORS_INIT" ]; then
-  echo "CI FAILED BECAUSE OF THESE GODOT ERRORS ON INITIALIZATION:"
+  echo "CI FAILED BECAUSE OF THESE GODOT ERRORS ON INITIALIZING:"
   echo "$FILTERED_ERRORS_INIT"
   echo ""
   FAILED=1
 fi
 
 if [ -n "$FILTERED_WARNINGS_INIT" ]; then
-  echo "CI FAILED BECAUSE OF THESE GODOT WARNINGS ON INITIALIZATION:"
+  echo "CI FAILED BECAUSE OF THESE GODOT WARNINGS ON INITIALIZING:"
   echo "$FILTERED_WARNINGS_INIT"
   echo ""
   FAILED=1
@@ -176,6 +161,21 @@ fi
 if [ -n "$FILTERED_WARNINGS_TESTS" ]; then
   echo "CI FAILED BECAUSE OF THESE GODOT WARNINGS ON TESTING:"
   echo "$FILTERED_WARNINGS_TESTS"
+  echo ""
+  FAILED=1
+fi
+
+# Godot always exists with error 0, but we want this action to fail in case of errors
+if grep -q "No tests ran" "$TEMP_FILE_TESTS" || grep -qE "Asserts\s+none" "$TEMP_FILE_TESTS";
+then
+  echo "CI FAILED BECAUSE NO TESTS RAN"
+  echo ""
+  FAILED=1
+fi
+
+if  ! grep -q "All tests passed" "$TEMP_FILE_TESTS"
+then
+  echo "CI FAILED BECAUSE SOME TESTS FAILED"
   echo ""
   FAILED=1
 fi
