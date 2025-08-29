@@ -10,6 +10,9 @@ GODOT_BIN=/usr/local/bin/godot
 # Download Godot
 GODOT_PARAMS=
 is_version_4=$( [[ $GODOT_VERSION == 4* ]] && echo "true" || echo "false" )
+TEMP_FILE_INIT=/tmp/godot_init.log
+TEMP_FILE_IMPORT=/tmp/godot_import.log
+TEMP_FILE_TESTS=/tmp/godot_tests.log
 
 echo ""
 echo "#####################"
@@ -53,7 +56,7 @@ echo "    INITIALIZING     "
 echo "#####################"
 
 echo Load godot once to initialize 
-$GODOT_BIN --headless --editor --render-thread safe --single-threaded-scene --quit
+$GODOT_BIN --headless --editor --render-thread safe --single-threaded-scene --quit --verbose 2>&1 | tee $TEMP_FILE_INIT
 
 echo ""
 echo ""
@@ -65,7 +68,7 @@ echo "     IMPORTING       "
 echo "#####################"
 
 echo Importing resources
-$GODOT_BIN --import --headless --render-thread safe --single-threaded-scene --quit
+$GODOT_BIN --import --headless --render-thread safe --single-threaded-scene --quit --verbose 2>&1 | tee $TEMP_FILE_IMPORT
 
 echo ""
 echo ""
@@ -80,8 +83,7 @@ echo Running GUT tests using params:
 echo "  -> $GUT_PARAMS"
 echo ""
 
-TEMP_FILE=/tmp/gut.log
-$GODOT_BIN -d -s $GODOT_PARAMS --path $PWD addons/gut/gut_cmdln.gd -gexit $GUT_PARAMS --render-thread safe --single-threaded-scene --verbose 2>&1 | tee $TEMP_FILE
+$GODOT_BIN -d -s $GODOT_PARAMS --path $PWD addons/gut/gut_cmdln.gd -gexit $GUT_PARAMS --render-thread safe --single-threaded-scene --verbose 2>&1 | tee $TEMP_FILE_TESTS
 
 
 
@@ -105,7 +107,7 @@ echo ""
 FAILED=0
 
 # Godot always exists with error 0, but we want this action to fail in case of errors
-if grep -q "No tests ran" "$TEMP_FILE" || grep -qE "Asserts\s+none" "$TEMP_FILE";
+if grep -q "No tests ran" "$TEMP_FILE_TESTS" || grep -qE "Asserts\s+none" "$TEMP_FILE_TESTS";
 then
   echo "CI FAILED BECAUSE NO TESTS RAN"
   echo ""
@@ -121,21 +123,59 @@ fi
 
 # Check for any error lines (case-insensitive)
 # Ignores null time for textures: https://github.com/godotengine/godot/issues/108994
-FILTERED_ERRORS=$(grep "ERROR" "$TEMP_FILE" | grep -v 'ERROR: Parameter "t" is null.') || true
+FILTERED_ERRORS_INIT=$(grep "ERROR" "$TEMP_FILE_INIT" | grep -v 'ERROR: Parameter "t" is null.') || true
+FILTERED_ERRORS_IMPORT=$(grep "ERROR" "$TEMP_FILE_IMPORT" | grep -v 'ERROR: Parameter "t" is null.') || true
+FILTERED_ERRORS_TESTS=$(grep "ERROR" "$TEMP_FILE_TESTS" | grep -v 'ERROR: Parameter "t" is null.') || true
 
-if [ -n "$FILTERED_ERRORS" ]; then
-  echo "CI FAILED BECAUSE OF THESE GODOT ERRORS"
-  echo "$FILTERED_ERRORS"
+# Check for invalid UID warnings which will cause problems for other people
+FILTERED_WARNINGS_INIT=$(grep "WARNING" "$TEMP_FILE_INIT" | grep 'invalid UID:') || true
+FILTERED_WARNINGS_IMPORT=$(grep "WARNING" "$TEMP_FILE_IMPORT" | grep 'invalid UID:') || true
+FILTERED_WARNINGS_TESTS=$(grep "WARNING" "$TEMP_FILE_TESTS" | grep 'invalid UID:') || true
+
+# INIT
+
+if [ -n "$FILTERED_ERRORS_INIT" ]; then
+  echo "CI FAILED BECAUSE OF THESE GODOT ERRORS ON INITIALIZATION:"
+  echo "$FILTERED_ERRORS_INIT"
   echo ""
   FAILED=1
 fi
 
-# Check for invalid UID warnings which will cause problems for other people
-FILTERED_WARNINGS=$(grep "WARNING" "$TEMP_FILE" | grep 'invalid UID:') || true
+if [ -n "$FILTERED_WARNINGS_INIT" ]; then
+  echo "CI FAILED BECAUSE OF THESE GODOT WARNINGS ON INITIALIZATION:"
+  echo "$FILTERED_WARNINGS_INIT"
+  echo ""
+  FAILED=1
+fi
 
-if [ -n "$FILTERED_WARNINGS" ]; then
-  echo "CI FAILED BECAUSE OF THESE GODOT WARNINGS:"
-  echo "$FILTERED_WARNINGS"
+# IMPORT
+
+if [ -n "$FILTERED_ERRORS_IMPORT" ]; then
+  echo "CI FAILED BECAUSE OF THESE GODOT ERRORS ON IMPORTING:"
+  echo "$FILTERED_ERRORS_IMPORT"
+  echo ""
+  FAILED=1
+fi
+
+if [ -n "$FILTERED_WARNINGS_IMPORT" ]; then
+  echo "CI FAILED BECAUSE OF THESE GODOT WARNINGS ON IMPORTING:"
+  echo "$FILTERED_WARNINGS_IMPORT"
+  echo ""
+  FAILED=1
+fi
+
+# TESTS
+
+if [ -n "$FILTERED_ERRORS_TESTS" ]; then
+  echo "CI FAILED BECAUSE OF THESE GODOT ERRORS ON TESTING:"
+  echo "$FILTERED_ERRORS_TESTS"
+  echo ""
+  FAILED=1
+fi
+
+if [ -n "$FILTERED_WARNINGS_TESTS" ]; then
+  echo "CI FAILED BECAUSE OF THESE GODOT WARNINGS ON TESTING:"
+  echo "$FILTERED_WARNINGS_TESTS"
   echo ""
   FAILED=1
 fi
